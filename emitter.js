@@ -11,22 +11,39 @@ const isStar = true;
  * @returns {Object}
  */
 function getEmitter() {
-    const subscribeData = {};
 
+    /**
+     * Словарь подписок на события
+     */
+    const subscriptionData = {};
+
+    /**
+     * Получить список из дочерних событий и самого события из словаря
+     * @param {String} event
+     * @returns {Object}
+     */
     function getChildrenEvents(event) {
-        return Object.keys(subscribeData).filter(currentEvent =>
-            currentEvent.startsWith(event + '.') || currentEvent === event
-        );
+        return Object.keys(subscriptionData).filter(currentEvent =>
+            currentEvent.startsWith(event + '.') || currentEvent === event);
     }
 
+    /**
+     * Добавить подписку в словарь событий
+     * @param {String} event
+     * @param {Object} subscription
+     */
     function addSubscription(event, subscription) {
-        if (subscribeData[event]) {
-            subscribeData[event].push(subscription);
+        if (subscriptionData[event]) {
+            subscriptionData[event].push(subscription);
         } else {
-            subscribeData[event] = [subscription];
+            subscriptionData[event] = [subscription];
         }
     }
 
+    /**
+     * Попытаться вызвать обработчик handler
+     * @param {Object} person
+     */
     function tryToCallHandler(person) {
         if (typeof person.counter === 'undefined' && typeof person.frequency === 'undefined' ||
             checkCounterProperty(person) ||
@@ -35,10 +52,20 @@ function getEmitter() {
         }
     }
 
+    /**
+     * Проверить условия на свойство counter
+     * @param {Object} person
+     * @returns {boolean}
+     */
     function checkCounterProperty(person) {
         return person.counter && person.counter-- !== 0;
     }
 
+    /**
+     * Проверить условия на свойство frequency
+     * @param {Object} person
+     * @returns {boolean}
+     */
     function checkFrequencyProperty(person) {
         return person.frequency && person.eventCounter++ % person.frequency === 0;
     }
@@ -65,13 +92,10 @@ function getEmitter() {
          * @returns {Object}
          */
         off: function (event, context) {
-            const events = getChildrenEvents(event);
-            if (events.length > 0) {
-                events.forEach(currentEvent => {
-                    subscribeData[currentEvent] = subscribeData[currentEvent].filter(
-                        person => person.information !== context);
-                });
-            }
+            getChildrenEvents(event).forEach(currentEvent => {
+                subscriptionData[currentEvent] = subscriptionData[currentEvent].filter(
+                    person => person.information !== context);
+            });
 
             return this;
         },
@@ -82,8 +106,8 @@ function getEmitter() {
          * @returns {Object}
          */
         emit: function (event) {
-            if (Object.keys(subscribeData).includes(event)) {
-                subscribeData[event].forEach(person => tryToCallHandler(person));
+            if (Object.keys(subscriptionData).includes(event)) {
+                subscriptionData[event].forEach(person => tryToCallHandler(person));
             }
             let eventParent = event.replace(/\.\w+$/, '');
             if (eventParent !== event) {
