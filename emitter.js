@@ -82,7 +82,7 @@ function getEmitter() {
             if (Object.keys(subscribeData).includes(event)) {
                 subscribeData[event].forEach(person => tryToCallHandler(person));
             }
-            let eventParent = event.replace(/\.[\w.]+$/, '');
+            let eventParent = event.replace(/\.\w+$/, '');
             if (eventParent !== event) {
                 this.emit(eventParent);
             }
