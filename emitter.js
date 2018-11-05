@@ -4,7 +4,7 @@
  * Сделано задание на звездочку
  * Реализованы методы several и through
  */
-const isStar = false;
+const isStar = true;
 
 /**
  * Возвращает новый emitter
@@ -19,19 +19,19 @@ function getEmitter() {
         );
     }
 
-    function addSubscribe(event, subscribe) {
+    function addSubscribe(event, subscription) {
         if (subscribeData[event]) {
-            subscribeData[event].push(subscribe);
+            subscribeData[event].push(subscription);
         } else {
-            subscribeData[event] = [subscribe];
+            subscribeData[event] = [subscription];
         }
     }
 
     function tryToCallHandler(person) {
-        if (!person.counter && !person.frequency ||
+        if (typeof person.counter === 'undefined' && typeof person.frequency === 'undefined' ||
             checkCounterProperty(person) ||
             checkFrequencyProperty(person)) {
-            person.handler.call(person.name);
+            person.handler.call(person.information);
         }
     }
 
@@ -53,7 +53,7 @@ function getEmitter() {
          * @returns {Object}
          */
         on: function (event, context, handler) {
-            addSubscribe(event, { name: context, handler: handler });
+            addSubscribe(event, { information: context, handler: handler });
 
             return this;
         },
@@ -67,7 +67,7 @@ function getEmitter() {
         off: function (event, context) {
             [event].concat(getChildrenEvents(event)).forEach(currentEvent => {
                 subscribeData[currentEvent] =
-                    subscribeData[currentEvent].filter(person => person.name !== context);
+                    subscribeData[currentEvent].filter(person => person.information !== context);
             });
 
             return this;
@@ -100,7 +100,7 @@ function getEmitter() {
          * @returns {Object}
          */
         several: function (event, context, handler, times) {
-            addSubscribe(event, { name: context, handler: handler, counter: times });
+            addSubscribe(event, { information: context, handler: handler, counter: times });
 
             return this;
         },
@@ -117,7 +117,7 @@ function getEmitter() {
         through: function (event, context, handler, frequency) {
             addSubscribe(
                 event,
-                { name: context, handler: handler, frequency: frequency, eventCounter: 0 }
+                { information: context, handler: handler, frequency: frequency, eventCounter: 0 }
             );
 
             return this;
