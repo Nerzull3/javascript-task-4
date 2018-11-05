@@ -15,11 +15,11 @@ function getEmitter() {
 
     function getChildrenEvents(event) {
         return Object.keys(subscribeData).filter(currentEvent =>
-            currentEvent.startsWith(event + '.')
+            currentEvent.startsWith(event + '.') || currentEvent === event
         );
     }
 
-    function addSubscribe(event, subscription) {
+    function addSubscription(event, subscription) {
         if (subscribeData[event]) {
             subscribeData[event].push(subscription);
         } else {
@@ -53,7 +53,7 @@ function getEmitter() {
          * @returns {Object}
          */
         on: function (event, context, handler) {
-            addSubscribe(event, { information: context, handler: handler });
+            addSubscription(event, { information: context, handler: handler });
 
             return this;
         },
@@ -65,10 +65,13 @@ function getEmitter() {
          * @returns {Object}
          */
         off: function (event, context) {
-            [event].concat(getChildrenEvents(event)).forEach(currentEvent => {
-                subscribeData[currentEvent] =
-                    subscribeData[currentEvent].filter(person => person.information !== context);
-            });
+            const events = getChildrenEvents(event);
+            if (events.length > 0) {
+                events.forEach(currentEvent => {
+                    subscribeData[currentEvent] = subscribeData[currentEvent].filter(
+                        person => person.information !== context);
+                });
+            }
 
             return this;
         },
@@ -100,7 +103,7 @@ function getEmitter() {
          * @returns {Object}
          */
         several: function (event, context, handler, times) {
-            addSubscribe(event, { information: context, handler: handler, counter: times });
+            addSubscription(event, { information: context, handler: handler, counter: times });
 
             return this;
         },
@@ -115,7 +118,7 @@ function getEmitter() {
          * @returns {Object}
          */
         through: function (event, context, handler, frequency) {
-            addSubscribe(
+            addSubscription(
                 event,
                 { information: context, handler: handler, frequency: frequency, eventCounter: 0 }
             );
