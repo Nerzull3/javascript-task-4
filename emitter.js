@@ -23,8 +23,10 @@ function getEmitter() {
      * @returns {Object}
      */
     function getChildrenEvents(event) {
+        const pattern = event + '.';
+
         return Object.keys(subscriptionData).filter(currentEvent =>
-            currentEvent.startsWith(event + '.') || currentEvent === event);
+            currentEvent === event || currentEvent.startsWith(pattern));
     }
 
     /**
@@ -45,7 +47,9 @@ function getEmitter() {
      * @param {Object} person
      */
     function tryToCallHandler(person) {
-        if (typeof person.counter === 'undefined' && typeof person.frequency === 'undefined' ||
+        const haveNoExtraProperties =
+            !person.hasOwnProperty('counter') && !person.hasOwnProperty('frequency');
+        if (haveNoExtraProperties ||
             checkCounterProperty(person) ||
             checkFrequencyProperty(person)) {
             person.handler.call(person.information);
@@ -80,7 +84,7 @@ function getEmitter() {
          * @returns {Object}
          */
         on: function (event, context, handler) {
-            addSubscription(event, { information: context, handler: handler });
+            addSubscription(event, { information: context, handler });
 
             return this;
         },
@@ -106,10 +110,10 @@ function getEmitter() {
          * @returns {Object}
          */
         emit: function (event) {
-            if (Object.keys(subscriptionData).includes(event)) {
+            if (subscriptionData.hasOwnProperty(event)) {
                 subscriptionData[event].forEach(person => tryToCallHandler(person));
             }
-            let eventParent = event.replace(/\.\w+$/, '');
+            const eventParent = event.replace(/\.\w+$/, '');
             if (eventParent !== event) {
                 this.emit(eventParent);
             }
@@ -127,7 +131,7 @@ function getEmitter() {
          * @returns {Object}
          */
         several: function (event, context, handler, times) {
-            addSubscription(event, { information: context, handler: handler, counter: times });
+            addSubscription(event, { information: context, handler, counter: times });
 
             return this;
         },
@@ -144,7 +148,7 @@ function getEmitter() {
         through: function (event, context, handler, frequency) {
             addSubscription(
                 event,
-                { information: context, handler: handler, frequency: frequency, eventCounter: 0 }
+                { information: context, handler, frequency, eventCounter: 0 }
             );
 
             return this;
